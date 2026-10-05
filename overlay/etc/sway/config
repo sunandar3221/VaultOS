@@ -36,6 +36,7 @@ input "type:touchpad" {
 ### Keybindings
 
 # Applications
+bindsym $mod+i exec /usr/local/bin/vault-installer-launch.sh
 bindsym $mod+f exec firefox
 bindsym $mod+e exec pcmanfm
 bindsym $mod+t exec foot -T "Debian Sandbox Terminal" /usr/local/bin/vault-sandbox-terminal.sh
@@ -87,7 +88,14 @@ for_window [app_id="firefox"] border pixel 2
 for_window [app_id="pcmanfm"] border pixel 2
 for_window [title="Debian Sandbox Terminal"] border pixel 2
 for_window [title="VaultOS Power Menu"] floating enable
+for_window [app_id="vault-installer"] floating enable
+for_window [title="VaultOS Installer"] floating enable
 
 # Autostart status bar and core services
-exec_always waybar
+bar {
+    swaybar_command waybar
+}
 exec dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway
+
+# Auto-launch installer on startup
+exec /usr/local/bin/vault-installer-launch.sh

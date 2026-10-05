@@ -1,31 +1,30 @@
 #!/bin/bash
 # ==============================================================================
-# VaultOS Headless QEMU Testing & Screenshot Capture
-# Boots the ISO in QEMU, waits for Sway GUI, and captures a live screenshot
-# Executed strictly inside GitHub Actions CI runner
+# VaultOS Headless QEMU Testing & Multi-Screen Capture
+# 1. Boots ISO directly into the HTML/SVG Installer
+# 2. Captures screenshot of Installer (screenshot-installer.png)
+# 3. Triggers "Try OS" / close installer via QMP send-key
+# 4. Captures screenshot of Sway Desktop (screenshot-desktop.png)
 # ==============================================================================
 
 set -euo pipefail
 
 ISO_PATH="${1:-$(pwd)/VaultOS-x86_64.iso}"
-SCREENSHOT_OUTPUT="${2:-$(pwd)/tests/screenshot.png}"
+OUT_DIR="$(pwd)/tests"
 QMP_SOCK="/tmp/qmp-sock"
 QEMU_PID="/tmp/qemu.pid"
-PPM_TEMP="/tmp/screenshot.ppm"
 
-mkdir -p "$(dirname "$SCREENSHOT_OUTPUT")"
+mkdir -p "$OUT_DIR"
 
 if [ ! -f "$ISO_PATH" ]; then
     echo "[ERROR] ISO file tidak ditemukan: $ISO_PATH"
     exit 1
 fi
 
-echo "=== [1/4] Menjalankan QEMU Headless untuk Testing Boot ==="
+echo "=== [1/5] Menjalankan QEMU Headless untuk Testing Live USB ==="
 
-# Clean any existing sockets
-rm -f "$QMP_SOCK" "$QEMU_PID" "$PPM_TEMP"
+rm -f "$QMP_SOCK" "$QEMU_PID" /tmp/screen-*.ppm
 
-# Launch QEMU
 qemu-system-x86_64 \
     -m 2048 \
     -smp 2 \
@@ -39,61 +38,85 @@ qemu-system-x86_64 \
     -pidfile "$QEMU_PID"
 
 echo "--> QEMU berjalan dengan PID: $(cat "$QEMU_PID")"
-echo "=== [2/4] Menunggu Sistem Selesai Booting (55 detik)... ==="
+echo "=== [2/5] Menunggu Sistem & Installer Selesai Dimuat (60 detik)... ==="
 
-for i in $(seq 55 -5 5); do
-    echo "    Menunggu... ${i}s tersisa"
+for i in $(seq 60 -5 5); do
+    echo "    Menunggu boot... ${i}s tersisa"
     sleep 5
 done
 
-echo "=== [3/4] Mengambil Screenshot Tampilan Layar via QEMU QMP ==="
+echo "=== [3/5] Mengambil Screenshot Tampilan Installer ==="
 
 python3 - << 'PYEOF'
 import socket
 import json
 import time
 
+def qmp_execute(sock, cmd):
+    sock.sendall(json.dumps(cmd).encode() + b"\n")
+    time.sleep(1)
+    return sock.recv(2048)
+
 s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 s.connect("/tmp/qmp-sock")
-
-# Read greeting
 s.recv(1024)
 
-# Negotiate capabilities
-s.sendall(json.dumps({"execute": "qmp_capabilities"}).encode() + b"\n")
-s.recv(1024)
+# Negotiate
+qmp_execute(s, {"execute": "qmp_capabilities"})
 
-# Execute screendump
-screendump_cmd = {"execute": "screendump", "arguments": {"filename": "/tmp/screenshot.ppm"}}
-s.sendall(json.dumps(screendump_cmd).encode() + b"\n")
-time.sleep(2)
-s.recv(1024)
+# 1. Capture Installer Screen
+print("--> Menangkap screenshot installer...")
+qmp_execute(s, {"execute": "screendump", "arguments": {"filename": "/tmp/screen-installer.ppm"}})
+
+# 2. Simulate Try OS / Super+Q to close installer and show Sway desktop
+print("--> Mengirim pintasan keyboard Super+Q untuk beralih ke Desktop Sway (Try OS)...")
+qmp_execute(s, {
+    "execute": "send-key",
+    "arguments": {
+        "keys": [
+            {"type": "qcode", "data": "meta_l"},
+            {"type": "qcode", "data": "q"}
+        ]
+    }
+})
+time.sleep(4)
+
+# 3. Capture Sway Desktop Screen
+print("--> Menangkap screenshot desktop Sway (Try OS)...")
+qmp_execute(s, {"execute": "screendump", "arguments": {"filename": "/tmp/screen-desktop.ppm"}})
+
 s.close()
-print("--> Screendump QMP berhasil dikirim.")
+print("--> Screendump QMP selesai.")
 PYEOF
 
-echo "=== [4/4] Mengonversi Format Screenshot ke PNG ==="
+echo "=== [4/5] Mengonversi Format Screenshot ke PNG ==="
 
-if [ -f "$PPM_TEMP" ]; then
-    if command -v convert >/dev/null 2>&1; then
-        convert "$PPM_TEMP" "$SCREENSHOT_OUTPUT"
-    elif command -v ffmpeg >/dev/null 2>&1; then
-        ffmpeg -y -i "$PPM_TEMP" "$SCREENSHOT_OUTPUT"
-    else
-        echo "[WARN] convert/ffmpeg tidak ditemukan, menyimpan raw ppm"
-        cp "$PPM_TEMP" "${SCREENSHOT_OUTPUT%.png}.ppm"
+convert_ppm() {
+    local src="$1"
+    local dst="$2"
+    if [ -f "$src" ]; then
+        if command -v convert >/dev/null 2>&1; then
+            convert "$src" "$dst"
+        elif command -v ffmpeg >/dev/null 2>&1; then
+            ffmpeg -y -i "$src" "$dst"
+        else
+            cp "$src" "${dst%.png}.ppm"
+        fi
+        echo "--> Berhasil membuat: $dst ($(ls -lh "$dst" | awk '{print $5}'))"
     fi
-    echo "--> Screenshot berhasil disimpan ke: $SCREENSHOT_OUTPUT"
-    ls -lh "$SCREENSHOT_OUTPUT"
-else
-    echo "[ERROR] File screendump tidak ditemukan!"
-fi
+}
 
-# Clean up QEMU process
+convert_ppm "/tmp/screen-installer.ppm" "$OUT_DIR/screenshot-installer.png"
+convert_ppm "/tmp/screen-desktop.ppm" "$OUT_DIR/screenshot-desktop.png"
+
+# Backward compatibility copy
+cp -v "$OUT_DIR/screenshot-installer.png" "$OUT_DIR/screenshot.png" || true
+
+echo "=== [5/5] Membersihkan Proses QEMU ==="
 if [ -f "$QEMU_PID" ]; then
-    echo "--> Mematikan instance QEMU..."
     kill -9 "$(cat "$QEMU_PID")" 2>/dev/null || true
-    rm -f "$QEMU_PID" "$QMP_SOCK" "$PPM_TEMP"
+    rm -f "$QEMU_PID" "$QMP_SOCK" /tmp/screen-*.ppm
 fi
 
-echo "=== Pengujian QEMU dan pengambilan screenshot selesai! ==="
+echo "=== Pengujian QEMU Installer & Try OS selesai! ==="
+ls -lh "$OUT_DIR"/*.png

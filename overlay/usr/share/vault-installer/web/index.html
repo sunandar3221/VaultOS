@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VaultOS Installer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="installer-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <svg class="brand-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="45" stroke="#89b4fa" stroke-width="4" stroke-dasharray="6 6"/>
+                    <path d="M50 15 L78 30 V55 C78 72 50 85 50 85 C50 85 22 72 22 55 V30 Z" fill="#1e1e2e" stroke="#89b4fa" stroke-width="4"/>
+                    <rect x="40" y="44" width="20" height="18" rx="3" fill="#a6e3a1"/>
+                    <path d="M45 44 V37 C45 34.2 47.2 32 50 32 C52.8 32 55 34.2 55 37 V44" stroke="#a6e3a1" stroke-width="3" stroke-linecap="round"/>
+                    <circle cx="50" cy="52" r="2.5" fill="#11111b"/>
+                </svg>
+                <div class="brand-text">
+                    <h1>VaultOS</h1>
+                    <span class="badge">Immutable OS</span>
+                </div>
+            </div>
+
+            <nav class="stepper">
+                <div class="step-item active" id="nav-step-1">
+                    <div class="step-num">1</div>
+                    <div class="step-label">Selamat Datang</div>
+                </div>
+                <div class="step-item" id="nav-step-2">
+                    <div class="step-num">2</div>
+                    <div class="step-label">Pilih Target Disk</div>
+                </div>
+                <div class="step-item" id="nav-step-3">
+                    <div class="step-num">3</div>
+                    <div class="step-label">Proses Pemasangan</div>
+                </div>
+                <div class="step-item" id="nav-step-4">
+                    <div class="step-num">4</div>
+                    <div class="step-label">Selesai</div>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button class="btn btn-secondary try-os-btn" onclick="tryOS()">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="5 3 19 12 5 21 5 3"/>
+                    </svg>
+                    Coba VaultOS (Try OS)
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="content-pane">
+            <header class="top-nav">
+                <div class="system-status">
+                    <span class="status-dot"></span> Mode Live USB
+                </div>
+                <button class="btn-sm btn-ghost" onclick="tryOS()" title="Kembali ke desktop Sway">
+                    Buka Desktop (Try OS) &rarr;
+                </button>
+            </header>
+
+            <!-- STEP 1: Welcome Screen -->
+            <section class="step-content active" id="step-1">
+                <div class="hero-header">
+                    <h2>Selamat Datang di VaultOS</h2>
+                    <p class="subtitle">Sistem Operasi Linux Aman, Immutable (Read-Only), dan Terisolasi Sandbox.</p>
+                </div>
+
+                <div class="features-grid">
+                    <div class="feature-box">
+                        <svg viewBox="0 0 24 24" width="28" height="28" stroke="#89b4fa" fill="none" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                        <h3>Sistem Read-Only</h3>
+                        <p>File sistem host tidak dapat diubah oleh pengguna biasa, tahan malware dan kerusakan sistem.</p>
+                    </div>
+                    <div class="feature-box">
+                        <svg viewBox="0 0 24 24" width="28" height="28" stroke="#a6e3a1" fill="none" stroke-width="2">
+                            <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+                            <polyline points="2 17 12 22 22 17"/>
+                            <polyline points="2 12 12 17 22 12"/>
+                        </svg>
+                        <h3>Sway Wayland & Apps</h3>
+                        <p>Window Manager Sway ringan dan cepat, lengkap dengan Firefox & PCManFM terpasang.</p>
+                    </div>
+                    <div class="feature-box">
+                        <svg viewBox="0 0 24 24" width="28" height="28" stroke="#f9e2af" fill="none" stroke-width="2">
+                            <polyline points="4 17 10 11 4 5"/>
+                            <line x1="12" y1="19" x2="20" y2="19"/>
+                        </svg>
+                        <h3>Debian Sandbox Terminal</h3>
+                        <p>Terminal terisolasi dalam container Bubblewrap, bebas eksperimen tanpa menyentuh host.</p>
+                    </div>
+                </div>
+
+                <div class="options-container">
+                    <div class="option-card primary" onclick="goToStep(2)">
+                        <div class="option-badge">Rekomendasi</div>
+                        <div class="option-icon">
+                            <svg viewBox="0 0 24 24" width="36" height="36" stroke="#89b4fa" fill="none" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+                            </svg>
+                        </div>
+                        <div class="option-info">
+                            <h3>Pasang VaultOS ke Disk</h3>
+                            <p>Instalasi permanen ke penyimpanan internal (SSD / HDD) komputer Anda.</p>
+                        </div>
+                        <button class="btn btn-primary">Mulai Instalasi &rarr;</button>
+                    </div>
+
+                    <div class="option-card" onclick="tryOS()">
+                        <div class="option-icon">
+                            <svg viewBox="0 0 24 24" width="36" height="36" stroke="#a6e3a1" fill="none" stroke-width="2">
+                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                                <line x1="8" y1="21" x2="16" y2="21"/>
+                                <line x1="12" y1="17" x2="12" y2="21"/>
+                            </svg>
+                        </div>
+                        <div class="option-info">
+                            <h3>Coba VaultOS (Try OS)</h3>
+                            <p>Jalankan langsung sesi live di desktop Sway tanpa mengubah disk komputer.</p>
+                        </div>
+                        <button class="btn btn-secondary">Coba Sistem ➔</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- STEP 2: Disk Selection -->
+            <section class="step-content" id="step-2">
+                <div class="hero-header">
+                    <h2>Pilih Media Penyimpanan Target</h2>
+                    <p class="subtitle">Pilih hard disk atau SSD tempat VaultOS akan dipasang.</p>
+                </div>
+
+                <div class="disk-selection-box">
+                    <div class="box-title">
+                        <span>Penyimpanan Terdeteksi</span>
+                        <button class="btn-sm btn-ghost" onclick="fetchDisks()">🔄 Segarkan Disk</button>
+                    </div>
+                    <div class="disk-list" id="disk-list-container">
+                        <div class="loading-disks">
+                            <div class="spinner"></div>
+                            <span>Mendeteksi media penyimpanan...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert-box">
+                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="#f38ba8" fill="none" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                        <line x1="12" y1="9" x2="12" y2="13"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                    <div>
+                        <strong>Peringatan Penghapusan Data:</strong> Seluruh data pada disk target yang dipilih akan dihapus dan diformat dengan struktur partisi VaultOS Immutable.
+                    </div>
+                </div>
+
+                <div class="actions-row">
+                    <button class="btn btn-secondary" onclick="goToStep(1)">&larr; Kembali</button>
+                    <button class="btn btn-primary" id="btn-proceed-install" onclick="startInstallation()" disabled>
+                        Lanjut Pasang Sekarang &rarr;
+                    </button>
+                </div>
+            </section>
+
+            <!-- STEP 3: Installation Progress -->
+            <section class="step-content" id="step-3">
+                <div class="hero-header">
+                    <h2>Memasang VaultOS ke Disk</h2>
+                    <p class="subtitle">Harap tunggu, proses ini memakan waktu beberapa menit.</p>
+                </div>
+
+                <div class="install-progress-box">
+                    <div class="progress-header">
+                        <span id="install-step-status">Menyiapkan partisi disk target...</span>
+                        <span id="install-percent">0%</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" id="progress-bar"></div>
+                    </div>
+
+                    <div class="log-console" id="install-logs">
+                        <p>[INFO] Inisialisasi proses instalasi...</p>
+                    </div>
+                </div>
+
+                <div class="tip-card">
+                    <h4>Tahukah Anda?</h4>
+                    <p>Setelah instalasi selesai, sistem VaultOS akan berjalan dalam partisi terenkapsulasi *read-only*. Terminal Debian dapat diunduh kapan saja tanpa membebani sistem utama.</p>
+                </div>
+            </section>
+
+            <!-- STEP 4: Completion -->
+            <section class="step-content" id="step-4">
+                <div class="completion-container">
+                    <div class="success-icon">
+                        <svg viewBox="0 0 24 24" width="64" height="64" stroke="#a6e3a1" fill="none" stroke-width="2.5">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                            <polyline points="22 4 12 14.01 9 11.01"/>
+                        </svg>
+                    </div>
+                    <h2>Instalasi VaultOS Berhasil!</h2>
+                    <p>VaultOS telah berhasil dipasang ke disk Anda. Anda dapat menyalakan ulang komputer dan mencabut USB Live, atau melanjutkan mencoba sesi Live.</p>
+
+                    <div class="actions-row center">
+                        <button class="btn btn-primary" onclick="rebootSystem()">
+                            🔄 Nyalakan Ulang Sekarang (Reboot)
+                        </button>
+                        <button class="btn btn-secondary" onclick="tryOS()">
+                            👁️ Lanjut Sesi Try OS (Desktop)
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

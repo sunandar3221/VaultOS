@@ -36,7 +36,7 @@ jobs:
 
       - name: Prepare Scripts Permissions
         run: |
-          chmod +x build/*.sh tests/*.sh overlay/usr/local/bin/* overlay/etc/profile.d/*
+          chmod +x build/*.sh tests/*.sh overlay/usr/local/bin/* overlay/etc/profile.d/* overlay/usr/share/vault-installer/installer-server.py
 
       - name: Build Rootfs (Immutable System)
         run: |
@@ -46,9 +46,9 @@ jobs:
         run: |
           sudo ./build/build-iso.sh /tmp/vaultos-rootfs VaultOS-x86_64.iso
 
-      - name: Test ISO in Headless QEMU & Capture Screenshot
+      - name: Test ISO in Headless QEMU & Capture Screenshots
         run: |
-          sudo ./tests/test-qemu.sh VaultOS-x86_64.iso tests/screenshot.png
+          sudo ./tests/test-qemu.sh VaultOS-x86_64.iso
 
       - name: Publish Build Summary to GitHub Actions
         run: |
@@ -57,14 +57,14 @@ jobs:
           echo "- **ISO File**: \`VaultOS-x86_64.iso\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Size**: $(ls -lh VaultOS-x86_64.iso | awk '{print $5}')" >> $GITHUB_STEP_SUMMARY
           echo "- **Status**: ✅ Selesai di-build & di-test di QEMU" >> $GITHUB_STEP_SUMMARY
-          echo "- **Kernel & Desktop**: Linux + Sway (Wayland)" >> $GITHUB_STEP_SUMMARY
+          echo "- **GUI Installer**: HTML5 + SVG + Dark Modern Wizard" >> $GITHUB_STEP_SUMMARY
+          echo "- **Live Session**: Try OS Mode (Sway Wayland + Waybar)" >> $GITHUB_STEP_SUMMARY
           echo "- **Built-in Apps**: Firefox, PCManFM" >> $GITHUB_STEP_SUMMARY
           echo "- **Sandbox**: On-Demand Debian Bubblewrap Container" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          if [ -f tests/screenshot.png ]; then
-            echo "### 📸 Screenshot Boot QEMU:" >> $GITHUB_STEP_SUMMARY
-            echo "Screenshot berhasil diambil selama proses pengujian headless." >> $GITHUB_STEP_SUMMARY
-          fi
+          echo "### 📸 Screenshot Pengujian QEMU:" >> $GITHUB_STEP_SUMMARY
+          echo "- \`screenshot-installer.png\`: Tampilan Installer HTML/SVG saat pertama kali booting Live USB" >> $GITHUB_STEP_SUMMARY
+          echo "- \`screenshot-desktop.png\`: Tampilan Desktop Sway setelah beralih ke mode Try OS" >> $GITHUB_STEP_SUMMARY
 
       - name: Upload ISO Artifact
         uses: actions/upload-artifact@v4
@@ -73,27 +73,33 @@ jobs:
           path: VaultOS-x86_64.iso
           if-no-files-found: error
 
-      - name: Upload Screenshot Artifact
+      - name: Upload Screenshots Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: VaultOS-Screenshot
-          path: tests/screenshot.png
+          name: VaultOS-Screenshots
+          path: tests/*.png
           if-no-files-found: warn
 
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG_NAME="v1.0.${{ github.run_number }}"
+          TAG_NAME="v1.1.${{ github.run_number }}"
           gh release create "$TAG_NAME" \
             VaultOS-x86_64.iso \
+            tests/screenshot-installer.png \
+            tests/screenshot-desktop.png \
             tests/screenshot.png \
-            --title "VaultOS Release $TAG_NAME" \
+            --title "VaultOS Release $TAG_NAME (with HTML/SVG Installer)" \
             --notes "### VaultOS Immutable Linux Release ($TAG_NAME)
+          - **Fitur Baru**:
+            - 💿 **Live USB Installer**: Langsung terbuka saat booting dengan antarmuka modern HTML5 & SVG.
+            - 👁️ **Fitur Try OS**: Masuk ke desktop Sway dan coba sistem tanpa menyentuh disk.
+            - 🔄 **Kembali ke Installer**: Tombol cepat di Waybar dan shortcut \`Super + I\`.
           - **Arsitektur**: x86_64 Live Boot (EFI + BIOS)
           - **UI**: Sway WM (Wayland) + Waybar
           - **Aplikasi**: Firefox & PCManFM
           - **Terminal**: Debian Sandbox on-demand via Bubblewrap
           - **Keamanan**: Read-Only Root, Zero Host System Access for User
           
-          Lihat screenshot tampilan di lampiran release."
+          Lihat screenshot installer dan desktop di lampiran release."

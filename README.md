@@ -28,14 +28,19 @@ Distro ini mengusung Window Manager **Sway** (Wayland) yang ringan, modern, dan 
      - `Super + T`: Debian Sandbox Terminal
      - `Super + X`: Power Menu (Shutdown / Reboot)
 
-3. **Debian Sandbox Terminal (On-Demand Download)**:
+3. **HTML5 + SVG Live Installer & Mode "Try OS"**:
+   - Saat Live USB dinyalakan, sistem otomatis membuka antarmuka GUI Installer modern berbasis HTML5 dan ikon vektor SVG.
+   - Dilengkapi opsi **Try OS**: Pengguna dapat menutup installer untuk langsung mencoba desktop Sway, browser, dan file manager tanpa mengubah isi disk komputer.
+   - Pengguna dapat kembali ke installer kapan saja melalui tombol **"💿 Install VaultOS"** di Waybar atau shortcut `Super + I`.
+
+4. **Debian Sandbox Terminal (On-Demand Download)**:
    - Terminal tidak langsung tersedia di dalam image ISO untuk menghemat ukuran.
    - Saat pertama kali user membuka terminal, skrip otomatis mengunduh rootfs Debian minimal (~30 MB terkompresi).
    - Dijalankan via **Bubblewrap (bwrap)** unprivileged sandbox.
    - Di dalam sandbox, pengguna memiliki hak akses root virtual, dapat menjalankan `apt update`, `apt install`, kompilasi kode, dll., dengan sistem host terlindungi 100%.
 
-4. **100% CI/CD Native via GitHub Actions**:
-   - Seluruh proses build ISO, testing headless via QEMU, dan pengambilan screenshot otomatis dilakukan di GitHub Actions runner.
+5. **100% CI/CD Native via GitHub Actions**:
+   - Seluruh proses build ISO, testing headless via QEMU, dan pengambilan screenshot (baik tampilan Installer maupun Sway Desktop) otomatis dilakukan di runner GitHub Actions.
    - Tidak ada build atau kompilasi lokal di mesin laptop.
 
 ---

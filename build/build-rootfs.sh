@@ -45,10 +45,12 @@ PACKAGES=(
     "fonts-dejavu-core"
     "libgl1-mesa-dri"
 
-    # Pre-installed Built-in Apps
+    # Pre-installed Built-in Apps & Installer
     "firefox-esr"
     "pcmanfm"
     "zenity"
+    "python3"
+    "util-linux"
 
     # Isolation & Sandbox runtime
     "bubblewrap"
@@ -79,6 +81,13 @@ fi
 # Ensure executable permissions on custom scripts
 chmod +x "$ROOTFS_DIR"/usr/local/bin/* || true
 chmod +x "$ROOTFS_DIR"/etc/profile.d/* || true
+chmod +x "$ROOTFS_DIR"/usr/share/vault-installer/installer-server.py || true
+
+# Pre-populate user sway & waybar config
+mkdir -p "$ROOTFS_DIR/home/vaultuser/.config/sway"
+cp -v "$ROOTFS_DIR/etc/sway/config" "$ROOTFS_DIR/home/vaultuser/.config/sway/config" || true
+mkdir -p "$ROOTFS_DIR/home/vaultuser/.config/waybar"
+cp -rv "$ROOTFS_DIR/etc/xdg/waybar/"* "$ROOTFS_DIR/home/vaultuser/.config/waybar/" || true
 
 echo "=== [3/5] Mengonfigurasi Akun Pengguna & Pengamanan Sistem ==="
 
