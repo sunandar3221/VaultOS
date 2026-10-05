@@ -1,0 +1,7 @@
+*.iso
+*.squashfs
+*.img
+*.ppm
+/rootfs/
+/iso_staging/
+tests/screenshot.png

@@ -1,0 +1,97 @@
+name: Build and Test VaultOS
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-test:
+    name: Build Live ISO & Test via QEMU
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Host Build Dependencies & QEMU
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            mmdebstrap \
+            squashfs-tools \
+            grub-pc-bin \
+            grub-efi-amd64-bin \
+            mtools \
+            xorriso \
+            qemu-system-x86 \
+            imagemagick \
+            python3 \
+            curl
+
+      - name: Prepare Scripts Permissions
+        run: |
+          chmod +x build/*.sh tests/*.sh overlay/usr/local/bin/* overlay/etc/profile.d/*
+
+      - name: Build Rootfs (Immutable System)
+        run: |
+          sudo ./build/build-rootfs.sh /tmp/vaultos-rootfs
+
+      - name: Package Live Bootable ISO
+        run: |
+          sudo ./build/build-iso.sh /tmp/vaultos-rootfs VaultOS-x86_64.iso
+
+      - name: Test ISO in Headless QEMU & Capture Screenshot
+        run: |
+          sudo ./tests/test-qemu.sh VaultOS-x86_64.iso tests/screenshot.png
+
+      - name: Publish Build Summary to GitHub Actions
+        run: |
+          echo "## 🚀 VaultOS Build & Test Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **ISO File**: \`VaultOS-x86_64.iso\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Size**: $(ls -lh VaultOS-x86_64.iso | awk '{print $5}')" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ✅ Selesai di-build & di-test di QEMU" >> $GITHUB_STEP_SUMMARY
+          echo "- **Kernel & Desktop**: Linux + Sway (Wayland)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Built-in Apps**: Firefox, PCManFM" >> $GITHUB_STEP_SUMMARY
+          echo "- **Sandbox**: On-Demand Debian Bubblewrap Container" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f tests/screenshot.png ]; then
+            echo "### 📸 Screenshot Boot QEMU:" >> $GITHUB_STEP_SUMMARY
+            echo "Screenshot berhasil diambil selama proses pengujian headless." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload ISO Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VaultOS-ISO
+          path: VaultOS-x86_64.iso
+          if-no-files-found: error
+
+      - name: Upload Screenshot Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VaultOS-Screenshot
+          path: tests/screenshot.png
+          if-no-files-found: warn
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG_NAME="v1.0.${{ github.run_number }}"
+          gh release create "$TAG_NAME" \
+            VaultOS-x86_64.iso \
+            tests/screenshot.png \
+            --title "VaultOS Release $TAG_NAME" \
+            --notes "### VaultOS Immutable Linux Release ($TAG_NAME)
+          - **Arsitektur**: x86_64 Live Boot (EFI + BIOS)
+          - **UI**: Sway WM (Wayland) + Waybar
+          - **Aplikasi**: Firefox & PCManFM
+          - **Terminal**: Debian Sandbox on-demand via Bubblewrap
+          - **Keamanan**: Read-Only Root, Zero Host System Access for User
+          
+          Lihat screenshot tampilan di lampiran release."

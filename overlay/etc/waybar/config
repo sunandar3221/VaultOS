@@ -1,0 +1,63 @@
+{
+    "layer": "top",
+    "position": "top",
+    "height": 38,
+    "spacing": 6,
+    "modules-left": [
+        "custom/os",
+        "custom/firefox",
+        "custom/files",
+        "custom/terminal"
+    ],
+    "modules-center": [
+        "clock"
+    ],
+    "modules-right": [
+        "pulseaudio",
+        "network",
+        "custom/power"
+    ],
+    "custom/os": {
+        "format": "🔒 VaultOS [Read-Only]",
+        "tooltip": false
+    },
+    "custom/firefox": {
+        "format": "🌐 Firefox",
+        "on-click": "firefox",
+        "tooltip": true,
+        "tooltip-format": "Buka Web Browser Firefox"
+    },
+    "custom/files": {
+        "format": "📁 File Manager",
+        "on-click": "pcmanfm",
+        "tooltip": true,
+        "tooltip-format": "Buka File Manager (PCManFM)"
+    },
+    "custom/terminal": {
+        "format": "💻 Debian Sandbox",
+        "on-click": "foot -T 'Debian Sandbox Terminal' /usr/local/bin/vault-sandbox-terminal.sh",
+        "tooltip": true,
+        "tooltip-format": "Jalankan Debian Sandbox Terminal terisolasi (Download on-demand)"
+    },
+    "clock": {
+        "format": "{:%a, %d %b %Y  |  %H:%M:%S}",
+        "interval": 1,
+        "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>"
+    },
+    "network": {
+        "format-wifi": " {essid}",
+        "format-ethernet": "󰈀 Online",
+        "format-disconnected": "⚠ Offline",
+        "tooltip-format": "{ifname}: {ipaddr}"
+    },
+    "pulseaudio": {
+        "format": "Vol: {volume}%",
+        "format-muted": "Vol: Muted"
+    },
+    "custom/power": {
+        "format": "⏻ Keluar",
+        "on-click": "/usr/local/bin/vault-power.sh",
+        "tooltip": true,
+        "tooltip-format": "Poweroff / Reboot VaultOS"
+    }
+}
