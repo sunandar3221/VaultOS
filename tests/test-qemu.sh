@@ -26,8 +26,8 @@ echo "=== [1/5] Menjalankan QEMU Headless untuk Testing Live USB ==="
 rm -f "$QMP_SOCK" "$QEMU_PID" /tmp/screen-*.ppm
 
 qemu-system-x86_64 \
-    -m 2048 \
-    -smp 2 \
+    -m 4096 \
+    -smp 4 \
     -cdrom "$ISO_PATH" \
     -boot d \
     -vga virtio \
@@ -38,9 +38,9 @@ qemu-system-x86_64 \
     -pidfile "$QEMU_PID"
 
 echo "--> QEMU berjalan dengan PID: $(cat "$QEMU_PID")"
-echo "=== [2/5] Menunggu Sistem & Installer Selesai Dimuat (70 detik)... ==="
+echo "=== [2/5] Menunggu Sistem & Installer Selesai Dimuat (80 detik)... ==="
 
-for i in $(seq 70 -5 5); do
+for i in $(seq 80 -5 5); do
     echo "    Menunggu boot & GUI... ${i}s tersisa"
     sleep 5
 done
