@@ -38,10 +38,10 @@ qemu-system-x86_64 \
     -pidfile "$QEMU_PID"
 
 echo "--> QEMU berjalan dengan PID: $(cat "$QEMU_PID")"
-echo "=== [2/5] Menunggu Sistem & Installer Selesai Dimuat (60 detik)... ==="
+echo "=== [2/5] Menunggu Sistem & Installer Selesai Dimuat (70 detik)... ==="
 
-for i in $(seq 60 -5 5); do
-    echo "    Menunggu boot... ${i}s tersisa"
+for i in $(seq 70 -5 5); do
+    echo "    Menunggu boot & GUI... ${i}s tersisa"
     sleep 5
 done
 

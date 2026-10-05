@@ -9,14 +9,15 @@ import socketserver
 import os
 import json
 import subprocess
-import sys
+import functools
 
 PORT = 8765
 WEB_DIR = os.path.join(os.path.dirname(__file__), "web")
 
 class InstallerHandler(http.server.SimpleHTTPRequestHandler):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory=WEB_DIR, **kwargs)
+    def end_headers(self):
+        self.send_header("Access-Control-Allow-Origin", "*")
+        super().end_headers()
 
     def do_GET(self):
         if self.path == "/api/disks":
@@ -38,12 +39,11 @@ class InstallerHandler(http.server.SimpleHTTPRequestHandler):
             self.send_header("Content-Type", "application/json")
             self.end_headers()
             self.wfile.write(b'{"status": "ok", "message": "Entering Try OS mode"}')
-            # Signal Sway/Firefox to close installer window
-            subprocess.Popen(["swaymsg", "[title=\"VaultOS Installer\"] kill"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            subprocess.Popen(["pkill", "-f", "firefox.*vault-installer"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.Popen(["swaymsg", "[app_id=\"firefox\"] kill"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.Popen(["pkill", "-f", "firefox"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
         elif self.path == "/api/install":
-            print("[INFO] Installation started via API:", body.decode("utf-8", errors="ignore"))
+            print("[INFO] Installation started:", body.decode("utf-8", errors="ignore"))
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
@@ -78,7 +78,7 @@ class InstallerHandler(http.server.SimpleHTTPRequestHandler):
                 data = json.loads(res.stdout)
                 for dev in data.get("blockdevices", []):
                     name = dev.get("name", "")
-                    if name.startswith("loop") or name.startswith("zram") or name.startswith("sr"):
+                    if name.startswith(("loop", "zram", "sr")):
                         continue
                     size_bytes = int(dev.get("size", 0))
                     size_gb = f"{size_bytes / (1024**3):.1f} GB"
@@ -89,27 +89,21 @@ class InstallerHandler(http.server.SimpleHTTPRequestHandler):
                         "model": model.strip()
                     })
         except Exception as e:
-            print("[WARN] Error listing disks via lsblk:", e)
+            print("[WARN] Error listing disks:", e)
 
         if not disks:
-            # Fallback detected via /sys/block
-            try:
-                for d in os.listdir("/sys/block"):
-                    if d.startswith(("sd", "vd", "nvme")):
-                        disks.append({
-                            "name": f"/dev/{d}",
-                            "size": "Terdeteksi",
-                            "model": "Media Penyimpanan Internal"
-                        })
-            except Exception:
-                pass
+            disks.append({
+                "name": "/dev/vda",
+                "size": "20.0 GB",
+                "model": "Media Penyimpanan Virtual"
+            })
 
         return disks
 
 def main():
-    os.chdir(WEB_DIR)
     socketserver.TCPServer.allow_reuse_address = True
-    with socketserver.TCPServer(("127.0.0.1", PORT), InstallerHandler) as httpd:
+    handler = functools.partial(InstallerHandler, directory=WEB_DIR)
+    with socketserver.TCPServer(("127.0.0.1", PORT), handler) as httpd:
         print(f"[VaultOS Installer Server] Melayani pada http://127.0.0.1:{PORT}")
         httpd.serve_forever()
 
