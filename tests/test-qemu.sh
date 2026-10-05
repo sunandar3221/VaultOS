@@ -39,9 +39,9 @@ qemu-system-x86_64 \
     -pidfile "$QEMU_PID"
 
 echo "--> QEMU berjalan dengan PID: $(cat "$QEMU_PID")"
-echo "=== [2/4] Menunggu Sistem Selesai Booting (30 detik)... ==="
+echo "=== [2/4] Menunggu Sistem Selesai Booting (55 detik)... ==="
 
-for i in $(seq 30 -5 5); do
+for i in $(seq 55 -5 5); do
     echo "    Menunggu... ${i}s tersisa"
     sleep 5
 done

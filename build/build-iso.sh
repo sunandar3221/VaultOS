@@ -51,12 +51,12 @@ set timeout=3
 search --set=root --file /live/vmlinuz
 
 menuentry "VaultOS (Immutable Sandboxed Linux)" --class os {
-    linux /live/vmlinuz boot=live quiet splash loglevel=3
+    linux /live/vmlinuz boot=live components quiet splash
     initrd /live/initrd.img
 }
 
 menuentry "VaultOS (Verbose Boot / Debug)" --class os {
-    linux /live/vmlinuz boot=live
+    linux /live/vmlinuz boot=live components
     initrd /live/initrd.img
 }
 EOF

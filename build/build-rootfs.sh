@@ -43,6 +43,7 @@ PACKAGES=(
     "foot"
     "seatd"
     "fonts-dejavu-core"
+    "libgl1-mesa-dri"
 
     # Pre-installed Built-in Apps
     "firefox-esr"
@@ -108,13 +109,19 @@ usermod -aG seat vaultuser 2>/dev/null || true
 systemctl enable seatd 2>/dev/null || true
 
 # Setup network
-cat << 'NET' > /etc/systemd/network/20-wired.network
+mkdir -p /etc/network
+cat << 'NET' > /etc/network/interfaces
+auto lo
+iface lo inet loopback
+NET
+
+cat << 'NETD' > /etc/systemd/network/20-wired.network
 [Match]
 Name=en* eth*
 
 [Network]
 DHCP=yes
-NET
+NETD
 systemctl enable systemd-networkd 2>/dev/null || true
 systemctl enable systemd-resolved 2>/dev/null || true
 
