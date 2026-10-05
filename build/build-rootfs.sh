@@ -55,8 +55,14 @@ PACKAGES=(
 
 PKG_LIST=$(IFS=, ; echo "${PACKAGES[*]}")
 
+KEYRING_ARG=""
+if [ -f "/usr/share/keyrings/debian-archive-keyring.gpg" ]; then
+    KEYRING_ARG="--keyring=/usr/share/keyrings/debian-archive-keyring.gpg"
+fi
+
 echo "--> Mengunduh dan memasang paket dasar menggunakan mmdebstrap..."
 mmdebstrap \
+    $KEYRING_ARG \
     --variant=minbase \
     --include="$PKG_LIST" \
     --components="main" \
