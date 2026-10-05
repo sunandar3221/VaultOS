@@ -9,7 +9,7 @@ echo "[INFO] Starting VaultOS Installer Launcher at $(date)"
 
 SERVER_SCRIPT="/usr/share/vault-installer/installer-server.py"
 PORT=8765
-URL="http://127.0.0.1:${PORT}/index.html"
+URL="file:///usr/share/vault-installer/web/index.html"
 PROFILE_DIR="/tmp/vault-installer-profile"
 
 # Start Python backend server in background if not already running
@@ -28,21 +28,17 @@ user_pref("toolkit.telemetry.enabled", false);
 user_pref("gfx.webrender.software", true);
 user_pref("layers.acceleration.disabled", true);
 user_pref("browser.tabs.remote.autostart", false);
+user_pref("browser.startup.page", 1);
+user_pref("browser.startup.homepage", "file:///usr/share/vault-installer/web/index.html");
+user_pref("browser.newtabpage.enabled", false);
+user_pref("trailhead.firstrun.didSeeAboutWelcome", true);
+user_pref("browser.aboutwelcome.enabled", false);
 PREF
 
 # Ensure Wayland and rendering environment
 export MOZ_ENABLE_WAYLAND=1
 export GDK_BACKEND=wayland
 
-# Wait up to 5 seconds for local server
-for i in {1..10}; do
-    if curl -s "http://127.0.0.1:${PORT}/" >/dev/null 2>&1; then
-        echo "[INFO] Server siap di port $PORT"
-        break
-    fi
-    sleep 0.5
-done
-
-# Launch Firefox in clean kiosk mode
-echo "[INFO] Membuka Firefox Kiosk: $URL"
+# Launch Firefox directly to local installer HTML page
+echo "[INFO] Membuka Firefox Kiosk Installer: $URL"
 exec firefox --profile "$PROFILE_DIR" --kiosk "$URL"
